@@ -116,10 +116,7 @@ async def get_all_admin_chats(event):
 async def is_admin(event, user):
     try:
         sed = await event.client.get_permissions(event.chat_id, user)
-        if sed.is_admin:
-            is_mod = True
-        else:
-            is_mod = False
+        is_mod = bool(sed.is_admin)
     except:
         is_mod = False
     return is_mod
@@ -138,9 +135,10 @@ async def progress(current, total, event, start, type_of_ps, file_name=None):
         estimated_total_time = elapsed_time + time_to_completion
         progress_str = "[{0}{1}]\nProgress: {2}%\n".format(
             "".join(["🟠" for i in range(math.floor(percentage / 5))]),
-            "".join(["🔘" for i in range(20 - math.floor(percentage / 5))]),
+            "".join(["🔘" for _ in range(20 - math.floor(percentage / 5))]),
             round(percentage, 2),
         )
+
         tmp = progress_str + "{0} of {1}\nETA: {2}".format(
             humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )

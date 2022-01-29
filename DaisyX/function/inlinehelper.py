@@ -119,13 +119,11 @@ async def webss(url):
     end_time = time()
     # m = await app.send_photo(LOG_GROUP_ID, photo=screenshot["url"])
     await m.delete()
-    a = []
     pic = InlineQueryResultPhoto(
         photo_url=screenshot["url"],
         caption=(f"`{url}`\n__Took {round(end_time - start_time)} Seconds.__"),
     )
-    a.append(pic)
-    return a
+    return [pic]
 
 
 async def translate_func(answers, lang, tex):
@@ -337,19 +335,18 @@ async def deezer_func(answers, text):
 async def shortify(url):
     if "." not in url:
         return
+    payload = {"long_url": f"{url}"}
+    payload = json.dumps(payload)
     header = {
         "Authorization": "Bearer ad39983fa42d0b19e4534f33671629a4940298dc",
         "Content-Type": "application/json",
     }
-    payload = {"long_url": f"{url}"}
-    payload = json.dumps(payload)
     async with aiohttp.ClientSession() as session:
         async with session.post(
             "https://api-ssl.bitly.com/v4/shorten", headers=header, data=payload
         ) as resp:
             data = await resp.json()
     msg = data["link"]
-    a = []
     b = InlineQueryResultArticle(
         title="Link Shortened!",
         description=data["link"],
@@ -357,8 +354,7 @@ async def shortify(url):
             msg, disable_web_page_preview=True
         ),
     )
-    a.append(b)
-    return a
+    return [b]
 
 
 async def torrent_func(answers, text):
@@ -438,7 +434,7 @@ async def ping_func(answers):
     ping = Ping(ping_id=randint(696969, 6969696))
     await app.send(ping)
     t2 = time()
-    ping = f"{str(round((t2 - t1), 2))} Seconds"
+    ping = f'{round(t2 - t1, 2)} Seconds'
     answers.append(
         InlineQueryResultArticle(
             title=ping, input_message_content=InputTextMessageContent(f"__**{ping}**__")

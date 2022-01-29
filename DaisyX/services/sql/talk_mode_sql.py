@@ -34,8 +34,7 @@ def add_talkmode(chat_id: str):
 
 
 def rmtalkmode(chat_id: str):
-    rmtalkmoddy = SESSION.query(Talkmode).get(str(chat_id))
-    if rmtalkmoddy:
+    if rmtalkmoddy := SESSION.query(Talkmode).get(str(chat_id)):
         SESSION.delete(rmtalkmoddy)
         SESSION.commit()
 
@@ -48,8 +47,7 @@ def get_all_chat_id():
 
 def is_talkmode_indb(chat_id: str):
     try:
-        s__ = SESSION.query(Talkmode).get(str(chat_id))
-        if s__:
+        if s__ := SESSION.query(Talkmode).get(str(chat_id)):
             return str(s__.chat_id)
     finally:
         SESSION.close()
