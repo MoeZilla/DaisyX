@@ -44,11 +44,10 @@ async def is_register_admin(chat, user):
 
 @register(pattern="^/imdb (.*)")
 async def imdb(e):
-    if e.is_group:
-        if await is_register_admin(e.input_chat, e.message.sender_id):
-            pass
-        else:
-            return
+    if e.is_group and not await is_register_admin(
+        e.input_chat, e.message.sender_id
+    ):
+        return
 
     try:
         movie_name = e.pattern_match.group(1)
@@ -76,32 +75,25 @@ async def imdb(e):
         else:
             mov_details = ""
         credits = soup.findAll("div", "credit_summary_item")
+        director = credits[0].a.text
         if len(credits) == 1:
-            director = credits[0].a.text
             writer = "Not available"
             stars = "Not available"
         elif len(credits) > 2:
-            director = credits[0].a.text
             writer = credits[1].a.text
-            actors = []
-            for x in credits[2].findAll("a"):
-                actors.append(x.text)
+            actors = [x.text for x in credits[2].findAll("a")]
             actors.pop()
             stars = actors[0] + "," + actors[1] + "," + actors[2]
         else:
-            director = credits[0].a.text
             writer = "Not available"
-            actors = []
-            for x in credits[1].findAll("a"):
-                actors.append(x.text)
+            actors = [x.text for x in credits[1].findAll("a")]
             actors.pop()
             stars = actors[0] + "," + actors[1] + "," + actors[2]
         if soup.find("div", "inline canwrap"):
             story_line = soup.find("div", "inline canwrap").findAll("p")[0].text
         else:
             story_line = "Not available"
-        info = soup.findAll("div", "txt-block")
-        if info:
+        if info := soup.findAll("div", "txt-block"):
             mov_country = []
             mov_language = []
             for node in info:

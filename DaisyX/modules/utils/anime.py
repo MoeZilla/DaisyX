@@ -17,7 +17,7 @@
 def shorten(description, info="anilist.co"):
     ms_g = ""
     if len(description) > 700:
-        description = description[0:500] + "..."
+        description = description[:500] + "..."
         ms_g += (
             f"\n<b>Description</b>: <i>{description}</i> <a href='{info}'>Read More</a>"
         )

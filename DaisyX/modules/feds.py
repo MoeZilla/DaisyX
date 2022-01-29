@@ -178,7 +178,7 @@ def get_fed_dec(func):
 
         if message.text:
             text_args = message.text.split(" ", 2)
-            if not len(text_args) < 2 and text_args[1].count("-") == 4:
+            if len(text_args) >= 2 and text_args[1].count("-") == 4:
                 if not (fed := await get_fed_by_id(text_args[1])):
                     await message.reply(
                         await get_string(real_chat_id, "feds", "fed_id_invalid")
@@ -209,7 +209,7 @@ def is_fed_owner(func):
         if user_id in [1087968824, 777000]:
             return
 
-        if not user_id == fed["creator"] and user_id != OWNER_ID:
+        if user_id not in [fed["creator"], OWNER_ID]:
             text = (await get_string(message.chat.id, "feds", "need_fed_admin")).format(
                 name=html.escape(fed["fed_name"], False)
             )
@@ -231,12 +231,13 @@ def is_fed_admin(func):
         if user_id in [1087968824, 777000]:
             return
 
-        if not user_id == fed["creator"] and user_id != OWNER_ID:
-            if "admins" not in fed or user_id not in fed["admins"]:
-                text = (
-                    await get_string(message.chat.id, "feds", "need_fed_admin")
-                ).format(name=html.escape(fed["fed_name"], False))
-                return await message.reply(text)
+        if user_id not in [fed["creator"], OWNER_ID] and (
+            "admins" not in fed or user_id not in fed["admins"]
+        ):
+            text = (
+                await get_string(message.chat.id, "feds", "need_fed_admin")
+            ).format(name=html.escape(fed["fed_name"], False))
+            return await message.reply(text)
 
         return await func(*args, **kwargs)
 
@@ -263,7 +264,7 @@ async def new_fed(message, strings):
         await message.reply(strings["fed_name_long"])
         return
 
-    if await get_fed_by_creator(user_id) and not user_id == OWNER_ID:
+    if await get_fed_by_creator(user_id) and user_id != OWNER_ID:
         await message.reply(strings["can_only_1_fed"])
         return
 
@@ -486,12 +487,13 @@ async def demote_from_fed(message, fed, user, text, strings):
 @get_strings_dec("feds")
 async def set_fed_log_chat(message, fed, chat, strings):
     chat_id = chat["chat_id"] if "chat_id" in chat else chat["id"]
-    if chat["type"] == "channel":
-        if (
-            await check_admin_rights(message, chat_id, BOT_ID, ["can_post_messages"])
-            is not True
-        ):
-            return await message.reply(strings["no_right_to_post"])
+    if chat["type"] == "channel" and (
+        await check_admin_rights(
+            message, chat_id, BOT_ID, ["can_post_messages"]
+        )
+        is not True
+    ):
+        return await message.reply(strings["no_right_to_post"])
 
     if "log_chat_id" in fed and fed["log_chat_id"]:
         await message.reply(
@@ -755,16 +757,12 @@ async def fed_ban_user(message, fed, user, reason, strings):
                 "by": message.from_user.id,
             }
             for chat_id in s_fed["chats"]:
-                if not user:
-                    continue
-
-                elif chat_id == user["user_id"]:
-                    continue
-
-                elif "chats" not in user:
-                    continue
-
-                elif chat_id not in user["chats"]:
+                if (
+                    not user
+                    or chat_id == user["user_id"]
+                    or "chats" not in user
+                    or chat_id not in user["chats"]
+                ):
                     continue
 
                 # Do not slow down other updates
@@ -986,7 +984,7 @@ async def fed_rename(message, fed, strings):
     if len(args) > 1 and args[0].count("-") == 4:
         new_name = " ".join(args[1:])
     else:
-        new_name = " ".join(args[0:])
+        new_name = " ".join(args[:])
 
     if new_name == fed["fed_name"]:
         await message.reply(strings["frename_same_name"])
